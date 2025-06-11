@@ -1,0 +1,31 @@
+{
+  "name": "investment-dd-backend",
+  "version": "1.0.0",
+  "description": "AWS Lambda functions for investment DD tool",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --watchAll=false",
+    "test:watch": "jest --watch",
+    "build": "sam build",
+    "deploy": "sam deploy --guided",
+    "local": "sam local start-api --port 3001",
+    "invoke:local": "sam local invoke",
+    "logs": "sam logs -n ProblemDefinitionAgent --stack-name investment-dd-dev --tail"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.0",
+    "@aws-sdk/client-dynamodb": "^3.450.0",
+    "@aws-sdk/lib-dynamodb": "^3.450.0",
+    "@aws-sdk/client-sfn": "^3.450.0",
+    "@aws-sdk/client-apigatewaymanagementapi": "^3.450.0",
+    "axios": "^1.5.0",
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "jest": "^29.6.2",
+    "@types/node": "^20.5.0",
+    "@types/aws-lambda": "^8.10.119",
+    "aws-sdk-client-mock": "^3.0.0"
+  }
+}

@@ -1,0 +1,135 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Investment DD Tool - Basic Infrastructure
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 256
+    Runtime: nodejs18.x
+    Environment:
+      Variables:
+        DYNAMODB_TABLE_NAME: !Ref AnalysesTable
+        REDDIT_CLIENT_ID: "{{resolve:secretsmanager:/investment-dd/reddit-client-id}}"
+        REDDIT_CLIENT_SECRET: "{{resolve:secretsmanager:/investment-dd/reddit-client-secret}}"
+        CENSUS_API_KEY: "{{resolve:secretsmanager:/investment-dd/census-api-key}}"
+
+Resources:
+  # DynamoDB Table
+  AnalysesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: investment-dd-analyses
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: analysisId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: analysisId
+          KeyType: HASH
+
+  # Health Check Lambda Function
+  HealthCheckFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: health-check
+      CodeUri: lambdas/health-check/
+      Handler: index.handler
+      Events:
+        HealthCheck:
+          Type: Api
+          Properties:
+            Path: /health
+            Method: get
+            RestApiId: !Ref ApiGateway
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AnalysesTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/investment-dd/*"
+
+  # Problem Definition Agent Lambda Function
+  ProblemDefinitionAgent:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: problem-definition-agent
+      CodeUri: lambdas/problem-definition-agent/
+      Handler: index.handler
+      Events:
+        ProblemDefinition:
+          Type: Api
+          Properties:
+            Path: /agents/problem-definition
+            Method: post
+            RestApiId: !Ref ApiGateway
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AnalysesTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/investment-dd/*"
+
+  # Market Size Agent Lambda Function
+  MarketSizeAgent:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: market-size-agent
+      CodeUri: lambdas/market-size-agent/
+      Handler: index.handler
+      Events:
+        MarketSize:
+          Type: Api
+          Properties:
+            Path: /agents/market-size
+            Method: post
+            RestApiId: !Ref ApiGateway
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AnalysesTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/investment-dd/*"
+
+  # API Gateway
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'http://localhost:5173'"
+        MaxAge: "'600'"
+      EndpointConfiguration:
+        Type: REGIONAL
+      Auth:
+        DefaultAuthorizer: NONE
+        AddDefaultAuthorizerToCorsPreflight: false
+      GatewayResponses:
+        DEFAULT_4XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'http://localhost:5173'"
+              Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+        DEFAULT_5XX:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'http://localhost:5173'"
+              Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+
+Outputs:
+  ApiGatewayUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  AnalysesTableName:
+    Description: DynamoDB Table Name
+    Value: !Ref AnalysesTable

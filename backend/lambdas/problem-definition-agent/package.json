@@ -1,0 +1,10 @@
+{
+  "name": "problem-definition-agent",
+  "version": "1.0.0",
+  "description": "Problem Definition Agent for Investment DD",
+  "main": "index.js",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.24.0",
+    "axios": "^1.5.0"
+  }
+}

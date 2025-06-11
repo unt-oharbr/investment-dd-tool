@@ -1,0 +1,26 @@
+{
+  "name": "investment-dd-tool",
+  "version": "1.0.0",
+  "description": "AI-powered investment due diligence tool with AWS Lambda + Claude",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run local:lambdas\"",
+    "dev:frontend": "cd frontend && npm run dev",
+    "local:lambdas": "cd backend && sam local start-api --port 3001",
+    "build": "npm run build:frontend && npm run build:lambdas",
+    "build:frontend": "cd frontend && npm run build",
+    "build:lambdas": "cd backend && sam build",
+    "test": "npm run test:lambdas && npm run test:frontend",
+    "test:lambdas": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "deploy:dev": "./aws/deploy.sh dev us-east-1",
+    "deploy:prod": "./aws/deploy.sh prod us-east-1",
+    "logs": "aws logs tail /aws/lambda/investment-dd --follow"
+  },
+  "keywords": ["investment", "due-diligence", "aws-lambda", "claude-ai", "serverless"],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
