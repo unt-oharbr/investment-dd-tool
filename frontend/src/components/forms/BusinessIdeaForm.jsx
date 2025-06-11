@@ -9,7 +9,7 @@ import {
 } from "@mui/material";
 import { analyzeBusinessIdea } from "../../services/api";
 
-const BusinessIdeaForm = ({ onAnalysisComplete }) => {
+const BusinessIdeaForm = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
     businessIdea: "",
   });
@@ -30,7 +30,7 @@ const BusinessIdeaForm = ({ onAnalysisComplete }) => {
 
     try {
       const result = await analyzeBusinessIdea(formData.businessIdea);
-      onAnalysisComplete(result);
+      onSubmit(result);
     } catch (err) {
       setError(err.message);
     } finally {

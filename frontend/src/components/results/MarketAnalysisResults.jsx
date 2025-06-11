@@ -37,36 +37,39 @@ const MarketAnalysisResults = ({ analysis }) => {
             <Typography variant="subtitle2" color="text.secondary">
               TAM Score
             </Typography>
-            <Typography variant="h6">{breakdown.tam}</Typography>
+            <Typography variant="h6">{breakdown?.tam || 0}</Typography>
             <Typography variant="caption" color="text.secondary">
-              ${details.tam.value.toFixed(2)}M
+              ${details?.tam?.value?.toFixed(2) || "0.00"}M
             </Typography>
           </Grid>
           <Grid item xs={6} sm={3}>
             <Typography variant="subtitle2" color="text.secondary">
               SAM Score
             </Typography>
-            <Typography variant="h6">{breakdown.sam}</Typography>
+            <Typography variant="h6">{breakdown?.sam || 0}</Typography>
             <Typography variant="caption" color="text.secondary">
-              ${details.sam.value.toFixed(2)}M
+              ${details?.sam?.value?.toFixed(2) || "0.00"}M
             </Typography>
           </Grid>
           <Grid item xs={6} sm={3}>
             <Typography variant="subtitle2" color="text.secondary">
               SOM Score
             </Typography>
-            <Typography variant="h6">{breakdown.som}</Typography>
+            <Typography variant="h6">{breakdown?.som || 0}</Typography>
             <Typography variant="caption" color="text.secondary">
-              ${details.som.value.toFixed(2)}M
+              ${details?.som?.value?.toFixed(2) || "0.00"}M
             </Typography>
           </Grid>
           <Grid item xs={6} sm={3}>
             <Typography variant="subtitle2" color="text.secondary">
               Growth Score
             </Typography>
-            <Typography variant="h6">{breakdown.growth}</Typography>
+            <Typography variant="h6">{breakdown?.growth || 0}</Typography>
             <Typography variant="caption" color="text.secondary">
-              {(details.growth.value * 100).toFixed(1)}%
+              {details?.growth?.value
+                ? (details.growth.value * 100).toFixed(1)
+                : "0.0"}
+              %
             </Typography>
           </Grid>
         </Grid>
@@ -77,7 +80,9 @@ const MarketAnalysisResults = ({ analysis }) => {
           <Typography variant="subtitle2" color="text.secondary">
             Analysis Details
           </Typography>
-          <Typography variant="body1">{reasoning}</Typography>
+          <Typography variant="body1">
+            {reasoning || "No analysis details available"}
+          </Typography>
         </Box>
       </CardContent>
     </Card>

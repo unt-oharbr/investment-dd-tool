@@ -1,6 +1,5 @@
-const AWS = require("aws-sdk");
 const { DynamoDBClient } = require("@aws-sdk/client-dynamodb");
-const { DynamoDBDocumentClient } = require("@aws-sdk/lib-dynamodb");
+const { DynamoDBDocumentClient, PutCommand } = require("@aws-sdk/lib-dynamodb");
 const axios = require("axios");
 
 const dynamoClient = new DynamoDBClient();
@@ -196,10 +195,10 @@ exports.handler = async (event) => {
 
     // Store in DynamoDB
     const tableName = process.env.DYNAMODB_TABLE_NAME;
-    await dynamoClient.send(
-      new PutItemCommand({
+    await docClient.send(
+      new PutCommand({
         TableName: tableName,
-        Item: marshall(fullAnalysis),
+        Item: fullAnalysis,
       })
     );
 

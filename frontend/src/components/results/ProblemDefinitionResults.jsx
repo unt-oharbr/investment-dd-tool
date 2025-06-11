@@ -37,25 +37,25 @@ const ProblemDefinitionResults = ({ analysis }) => {
             <Typography variant="subtitle2" color="text.secondary">
               Problem Clarity
             </Typography>
-            <Typography variant="h6">{breakdown.problemClarity}</Typography>
+            <Typography variant="h6">{breakdown?.clarity || 0}</Typography>
           </Grid>
           <Grid item xs={6} sm={3}>
             <Typography variant="subtitle2" color="text.secondary">
               Market Need
             </Typography>
-            <Typography variant="h6">{breakdown.marketNeed}</Typography>
+            <Typography variant="h6">{breakdown?.evidence || 0}</Typography>
           </Grid>
           <Grid item xs={6} sm={3}>
             <Typography variant="subtitle2" color="text.secondary">
               Solution Fit
             </Typography>
-            <Typography variant="h6">{breakdown.solutionFit}</Typography>
+            <Typography variant="h6">{breakdown?.urgency || 0}</Typography>
           </Grid>
           <Grid item xs={6} sm={3}>
             <Typography variant="subtitle2" color="text.secondary">
               Competition
             </Typography>
-            <Typography variant="h6">{breakdown.competition}</Typography>
+            <Typography variant="h6">{breakdown?.frequency || 0}</Typography>
           </Grid>
         </Grid>
 
@@ -65,18 +65,26 @@ const ProblemDefinitionResults = ({ analysis }) => {
           <Typography variant="subtitle2" color="text.secondary" gutterBottom>
             Key Insights
           </Typography>
-          {details.keyInsights.map((insight, index) => (
-            <Typography key={index} variant="body2" sx={{ mb: 1 }}>
-              • {insight}
+          {details?.keyInsights ? (
+            details.keyInsights.map((insight, index) => (
+              <Typography key={index} variant="body2" sx={{ mb: 1 }}>
+                • {insight}
+              </Typography>
+            ))
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              No key insights available
             </Typography>
-          ))}
+          )}
         </Box>
 
         <Box sx={{ mt: 3 }}>
           <Typography variant="subtitle2" color="text.secondary" gutterBottom>
             Detailed Analysis
           </Typography>
-          <Typography variant="body1">{reasoning}</Typography>
+          <Typography variant="body1">
+            {reasoning || "No detailed analysis available"}
+          </Typography>
         </Box>
       </CardContent>
     </Card>

@@ -1,0 +1,11 @@
+{
+  "name": "market-size-agent",
+  "version": "1.0.0",
+  "description": "Market Size Agent Lambda function",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.450.0",
+    "@aws-sdk/util-dynamodb": "^3.450.0",
+    "axios": "^1.5.0"
+  }
+}
