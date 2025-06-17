@@ -19,7 +19,7 @@ Resources:
   AnalysesTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: investment-dd-analyses
+      TableName: investment-dd-tool-analyses
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: analysisId
@@ -32,7 +32,7 @@ Resources:
   HealthCheckFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: health-check
+      FunctionName: investment-dd-tool-health-check
       CodeUri: lambdas/health-check/
       Handler: index.handler
       Events:
@@ -58,6 +58,16 @@ Resources:
       FunctionName: problem-definition-agent
       CodeUri: lambdas/problem-definition-agent/
       Handler: index.handler
+      Timeout: 300
+      MemorySize: 512
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME: !Ref AnalysesTable
+          REDDIT_CLIENT_ID: "{{resolve:secretsmanager:/investment-dd/reddit-client-id}}"
+          REDDIT_CLIENT_SECRET: "{{resolve:secretsmanager:/investment-dd/reddit-client-secret}}"
+          CENSUS_API_KEY: "{{resolve:secretsmanager:/investment-dd/census-api-key}}"
+          ANTHROPIC_API_KEY: "{{resolve:secretsmanager:/investment-dd/anthropic-api-key}}"
+          NEWS_API_KEY: "{{resolve:secretsmanager:/investment-dd/news-api-key}}"
       Events:
         ProblemDefinition:
           Type: Api
@@ -73,6 +83,7 @@ Resources:
               Action:
                 - secretsmanager:GetSecretValue
               Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/investment-dd/*"
+        - CloudWatchLogsFullAccess
 
   # Market Size Agent Lambda Function
   MarketSizeAgent:
@@ -81,6 +92,14 @@ Resources:
       FunctionName: market-size-agent
       CodeUri: lambdas/market-size-agent/
       Handler: index.handler
+      Timeout: 300
+      MemorySize: 512
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME: !Ref AnalysesTable
+          CENSUS_API_KEY: "{{resolve:secretsmanager:/investment-dd/census-api-key}}"
+          BLS_API_KEY: "{{resolve:secretsmanager:/investment-dd/bls-api-key}}"
+          ANTHROPIC_API_KEY: "{{resolve:secretsmanager:/investment-dd/anthropic-api-key}}"
       Events:
         MarketSize:
           Type: Api
@@ -96,6 +115,41 @@ Resources:
               Action:
                 - secretsmanager:GetSecretValue
               Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/investment-dd/*"
+        - CloudWatchLogsFullAccess
+
+  # Competitor Research Agent Lambda Function
+  CompetitorResearchAgent:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: competitor-research-agent
+      CodeUri: lambdas/competitor-research-agent/
+      Handler: index.handler
+      Timeout: 300
+      MemorySize: 512
+      Environment:
+        Variables:
+          DYNAMODB_TABLE_NAME: !Ref AnalysesTable
+          REDDIT_CLIENT_ID: "{{resolve:secretsmanager:/investment-dd/reddit-client-id}}"
+          REDDIT_CLIENT_SECRET: "{{resolve:secretsmanager:/investment-dd/reddit-client-secret}}"
+          CENSUS_API_KEY: "{{resolve:secretsmanager:/investment-dd/census-api-key}}"
+          ANTHROPIC_API_KEY: "{{resolve:secretsmanager:/investment-dd/anthropic-api-key}}"
+          NEWS_API_KEY: "{{resolve:secretsmanager:/investment-dd/news-api-key}}"
+      Events:
+        CompetitorResearch:
+          Type: Api
+          Properties:
+            Path: /agents/competitor-research
+            Method: post
+            RestApiId: !Ref ApiGateway
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AnalysesTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource: !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:/investment-dd/*"
+        - CloudWatchLogsFullAccess
 
   # API Gateway
   ApiGateway:
@@ -107,6 +161,7 @@ Resources:
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
         AllowOrigin: "'http://localhost:5173'"
         MaxAge: "'600'"
+        AllowCredentials: true
       EndpointConfiguration:
         Type: REGIONAL
       Auth:
@@ -119,12 +174,86 @@ Resources:
               Access-Control-Allow-Origin: "'http://localhost:5173'"
               Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
               Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+              Access-Control-Allow-Credentials: "'true'"
         DEFAULT_5XX:
           ResponseParameters:
             Headers:
               Access-Control-Allow-Origin: "'http://localhost:5173'"
               Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
               Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+              Access-Control-Allow-Credentials: "'true'"
+        ACCESS_DENIED:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'http://localhost:5173'"
+              Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+              Access-Control-Allow-Credentials: "'true'"
+        UNAUTHORIZED:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'http://localhost:5173'"
+              Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+              Access-Control-Allow-Credentials: "'true'"
+        INVALID_API_KEY:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'http://localhost:5173'"
+              Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+              Access-Control-Allow-Credentials: "'true'"
+        MISSING_AUTHENTICATION_TOKEN:
+          ResponseParameters:
+            Headers:
+              Access-Control-Allow-Origin: "'http://localhost:5173'"
+              Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              Access-Control-Allow-Methods: "'GET,POST,OPTIONS'"
+              Access-Control-Allow-Credentials: "'true'"
+      MinimumCompressionSize: 1024
+      BinaryMediaTypes:
+        - "*/*"
+      MethodSettings:
+        - ResourcePath: "/*"
+          HttpMethod: "*"
+          ThrottlingRateLimit: 100
+          ThrottlingBurstLimit: 50
+          MetricsEnabled: true
+          DataTraceEnabled: true
+          LoggingLevel: INFO
+          CacheDataEncrypted: true
+          CacheTtlInSeconds: 300
+      AccessLogSetting:
+        DestinationArn: !GetAtt ApiGatewayLogGroup.Arn
+        Format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "caller":"$context.identity.caller", "user":"$context.identity.user","requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","resourcePath":"$context.resourcePath", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
+
+  # API Gateway Log Group
+  ApiGatewayLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/apigateway/${AWS::StackName}"
+      RetentionInDays: 7
+
+  # IAM Role for API Gateway CloudWatch Logs
+  ApiGatewayCloudWatchRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs
+      Path: "/"
+
+  # API Gateway Account
+  ApiGatewayAccount:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn: !GetAtt ApiGatewayCloudWatchRole.Arn
 
 Outputs:
   ApiGatewayUrl:

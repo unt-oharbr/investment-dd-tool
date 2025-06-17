@@ -1,11 +1,15 @@
 {
   "name": "market-size-agent",
   "version": "1.0.0",
-  "description": "Market Size Agent Lambda function",
+  "description": "Enhanced market size analysis agent with multiple data sources",
   "main": "index.js",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.450.0",
+    "@aws-sdk/lib-dynamodb": "^3.450.0",
     "@aws-sdk/util-dynamodb": "^3.450.0",
-    "axios": "^1.5.0"
+    "@anthropic-ai/sdk": "^0.24.0",
+    "axios": "^1.5.0",
+    "cheerio": "^1.0.0-rc.12",
+    "uuid": "^9.0.0"
   }
 }

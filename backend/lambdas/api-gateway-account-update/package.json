@@ -1,0 +1,10 @@
+{
+  "name": "api-gateway-account-update",
+  "version": "1.0.0",
+  "description": "Lambda function to update API Gateway account settings",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-api-gateway": "^3.450.0",
+    "@aws-sdk/client-cloudformation": "^3.450.0"
+  }
+}
